@@ -1,0 +1,13 @@
+{
+  "name": "nexo-v2",
+  "version": "4.2.0",
+  "private": true,
+  "type": "commonjs",
+  "engines": {
+    "node": ">=22.5.0"
+  },
+  "scripts": {
+    "start": "node server.js",
+    "check": "node --check server.js"
+  }
+}
