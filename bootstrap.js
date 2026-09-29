@@ -22,6 +22,17 @@ if (unzip.status !== 0 || !fs.existsSync(path.join(APP, 'server.js'))) {
   process.exit(unzip.status || 1);
 }
 
+// Apply small live-site UI fixes without depending on an external game build.
+const hotfixJs = path.join(ROOT, 'hotfix.js');
+const hotfixCss = path.join(ROOT, 'hotfix.css');
+if (fs.existsSync(hotfixJs)) fs.copyFileSync(hotfixJs, path.join(APP, 'public/js/hotfix.js'));
+if (fs.existsSync(hotfixCss)) fs.copyFileSync(hotfixCss, path.join(APP, 'public/hotfix.css'));
+const indexPath = path.join(APP, 'public/index.html');
+let index = fs.readFileSync(indexPath, 'utf8');
+if (!index.includes('/hotfix.css')) index = index.replace('<link rel="stylesheet" href="/styles.css">', '<link rel="stylesheet" href="/styles.css">\n  <link rel="stylesheet" href="/hotfix.css">');
+if (!index.includes('/js/hotfix.js')) index = index.replace('<script type="module" src="/js/main.js"></script>', '<script type="module" src="/js/main.js"></script>\n<script type="module" src="/js/hotfix.js"></script>');
+fs.writeFileSync(indexPath, index);
+
 if (!process.env.NEXO_DATA_DIR) {
   process.env.NEXO_DATA_DIR = path.join(os.tmpdir(), 'nexo-data');
 }
