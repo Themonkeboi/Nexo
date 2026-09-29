@@ -33,6 +33,20 @@ if (!index.includes('/hotfix.css')) index = index.replace('<link rel="stylesheet
 if (!index.includes('/js/hotfix.js')) index = index.replace('<script type="module" src="/js/main.js"></script>', '<script type="module" src="/js/main.js"></script>\n<script type="module" src="/js/hotfix.js"></script>');
 fs.writeFileSync(indexPath, index);
 
+// Multiplayer movement fix: every connected player must start their own input loop
+// when the host starts a floor. Previously only the host called enterRunning()
+// from the start request, while invited players only rendered incoming snapshots.
+const gamePath = path.join(APP, 'public/js/game.js');
+let gameCode = fs.readFileSync(gamePath, 'utf8');
+const oldUpdateState = "function updateState(s){if(!s||!lobby||s.lobbyId!==lobby.id)return;snapshot=s;if(s.status==='running'){setGameMode('running');renderHUD()}}";
+const newUpdateState = "function updateState(s){if(!s||!lobby||s.lobbyId!==lobby.id)return;snapshot=s;if(s.status==='running'){if(!inputTimer)enterRunning(s);else{setGameMode('running');renderHUD()}}}";
+if (gameCode.includes(oldUpdateState)) {
+  gameCode = gameCode.replace(oldUpdateState, newUpdateState);
+} else if (!gameCode.includes(newUpdateState)) {
+  throw new Error('Could not apply DEAD SIGNAL multiplayer movement fix.');
+}
+fs.writeFileSync(gamePath, gameCode);
+
 if (!process.env.NEXO_DATA_DIR) {
   process.env.NEXO_DATA_DIR = path.join(os.tmpdir(), 'nexo-data');
 }
