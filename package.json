@@ -7,7 +7,7 @@
     "node": ">=22.5.0"
   },
   "scripts": {
-    "start": "node server.js",
+    "start": "node bootstrap.js",
     "check": "node --check server.js"
   }
 }
