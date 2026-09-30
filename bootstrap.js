@@ -1,7 +1,8 @@
 const fs = require('fs');
 const path = require('path');
 const os = require('os');
-const { spawnSync, spawn } = require('child_process');
+const { spawn } = require('child_process');
+const AdmZip = require('adm-zip');
 
 const ROOT = __dirname;
 const ZIP = path.join(ROOT, 'NEXO_v4_2_NATIVE_dead_signal.zip');
@@ -16,10 +17,16 @@ if (!fs.existsSync(ZIP)) {
 try { fs.rmSync(RUNTIME, { recursive: true, force: true }); } catch {}
 fs.mkdirSync(RUNTIME, { recursive: true });
 
-const unzip = spawnSync('unzip', ['-oq', ZIP, '-d', RUNTIME], { stdio: 'inherit' });
-if (unzip.status !== 0 || !fs.existsSync(path.join(APP, 'server.js'))) {
+try {
+  const zip = new AdmZip(ZIP);
+  zip.extractAllTo(RUNTIME, true);
+} catch (err) {
+  console.error('Could not unpack the NEXO v4.2 bundle.', err);
+  process.exit(1);
+}
+if (!fs.existsSync(path.join(APP, 'server.js'))) {
   console.error('Could not unpack the NEXO v4.2 bundle.');
-  process.exit(unzip.status || 1);
+  process.exit(1);
 }
 
 // Apply small live-site UI fixes without depending on an external game build.
